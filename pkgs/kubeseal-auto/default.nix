@@ -12,14 +12,14 @@ let
 in
 python.pkgs.buildPythonApplication rec {
   pname = "kubeseal-auto";
-  version = "0.6.0-unstable-2025-12-06";
+  version = "v0.7.0";
   pyproject = true;
 
   src = fetchFromGitHub {
     owner = "shini4i";
     repo = "kubeseal-auto";
-    rev = "d37417268b30db04e0908f96234bb99e3f261072";
-    hash = "sha256-UIF3JrVGib0xbdvUbZsyQEoyrC96TUEa45LeyVQPOTw=";
+    rev = "v0.7.0";
+    hash = "sha256-hqtUgh5jRX821j9PyhXoPCWzcdfQm/fYGYY75Ve/hb4=";
   };
 
   build-system = [ python.pkgs.poetry-core ];
