@@ -22,61 +22,17 @@ Add this repository as a flake input in your `flake.nix`:
 }
 ```
 
-### Option 1: Use packages directly
+### Use packages directly
 
 Access packages via the flake output:
 
 ```nix
 environment.systemPackages = [
-  shini4i-pkgs.packages.x86_64-linux.kubeseal-auto
+  shini4i-pkgs.packages.${system}.kubeseal-auto
 ];
 ```
 
-### Option 2: Use as an overlay in NixOS
-
-```nix
-nixosConfigurations.myhost = nixpkgs.lib.nixosSystem {
-  system = "x86_64-linux";
-  modules = [
-    {
-      nixpkgs.overlays = [ shini4i-pkgs.overlays.default ];
-    }
-    ./configuration.nix
-  ];
-};
-```
-
-Then in `configuration.nix`:
-
-```nix
-{ pkgs, ... }:
-{
-  environment.systemPackages = [ pkgs.kubeseal-auto ];
-}
-```
-
-### Option 3: Use as an overlay in Home Manager
-
-```nix
-homeConfigurations.myuser = home-manager.lib.homeManagerConfiguration {
-  pkgs = import nixpkgs {
-    system = "x86_64-linux";
-    overlays = [ shini4i-pkgs.overlays.default ];
-  };
-  modules = [ ./home.nix ];
-};
-```
-
-Then in `home.nix`:
-
-```nix
-{ pkgs, ... }:
-{
-  home.packages = [ pkgs.kubeseal-auto ];
-}
-```
-
-### Option 4: Try without installing
+### Try without installing
 
 ```bash
 nix run github:shini4i/nixpkgs#kubeseal-auto
@@ -123,7 +79,7 @@ nix run github:shini4i/nixpkgs#kubeseal-auto
 
 3. Add it to `pkgs/default.nix`:
    ```nix
-   { pkgs }:
+   { pkgs, p2nix }:
    {
      my-package = pkgs.callPackage ./my-package { };
    }

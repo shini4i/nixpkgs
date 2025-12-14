@@ -3,10 +3,13 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    flake-utils.url = "github:numtide/flake-utils";
+    poetry2nix = {
+      url = "github:nix-community/poetry2nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, flake-utils }:
+  outputs = { self, nixpkgs, poetry2nix }:
     let
       # Systems to support
       supportedSystems = [
@@ -20,20 +23,20 @@
       forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
 
       # Nixpkgs instantiated for each system
-      nixpkgsFor = forAllSystems (system: import nixpkgs {
-        inherit system;
-        overlays = [ self.overlays.default ];
-      });
+      nixpkgsFor = forAllSystems (system: import nixpkgs { inherit system; });
+
+      # poetry2nix instantiated for each system
+      poetry2nixFor = forAllSystems (system:
+        poetry2nix.lib.mkPoetry2Nix { pkgs = nixpkgsFor.${system}; }
+      );
     in
     {
-      # Overlay for use in other flakes
-      overlays.default = import ./overlay.nix;
-
       # Packages for each system
       packages = forAllSystems (system:
         let
           pkgs = nixpkgsFor.${system};
-          customPkgs = import ./pkgs { inherit pkgs; };
+          p2nix = poetry2nixFor.${system};
+          customPkgs = import ./pkgs { inherit pkgs p2nix; };
         in
         customPkgs
       );

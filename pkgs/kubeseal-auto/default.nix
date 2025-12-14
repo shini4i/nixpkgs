@@ -1,41 +1,26 @@
 # kubeseal-auto - an interactive wrapper for kubeseal binary
-# Uses buildPythonApplication with poetry-core for building from GitHub source.
+# Uses poetry2nix to build with exact dependency versions from poetry.lock.
 {
   lib,
-  python313,
+  p2nix,
   fetchFromGitHub,
   kubeseal,
+  python312,
 }:
 
 let
-  python = python313;
-in
-python.pkgs.buildPythonApplication rec {
-  pname = "kubeseal-auto";
-  version = "v0.7.0";
-  pyproject = true;
-
   src = fetchFromGitHub {
     owner = "shini4i";
     repo = "kubeseal-auto";
     rev = "v0.7.0";
     hash = "sha256-hqtUgh5jRX821j9PyhXoPCWzcdfQm/fYGYY75Ve/hb4=";
   };
-
-  build-system = [ python.pkgs.poetry-core ];
-
-  dependencies = with python.pkgs; [
-    pyyaml
-    requests
-    kubernetes
-    click
-    icecream
-    questionary
-    rich
-  ];
-
-  # Relax click version constraint for nixpkgs compatibility
-  pythonRelaxDeps = [ "click" ];
+in
+p2nix.mkPoetryApplication {
+  pname = "kubeseal-auto";
+  version = "0.7.0";
+  projectDir = src;
+  python = python312;
 
   # kubeseal binary is required at runtime
   makeWrapperArgs = [
