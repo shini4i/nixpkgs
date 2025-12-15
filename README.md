@@ -42,6 +42,7 @@ nix run github:shini4i/nixpkgs#kubeseal-auto
 
 | Package | Description |
 |---------|-------------|
+| `argo-compare` | Comparison tool for ArgoCD Application manifests between Git branches |
 | `kd` | A bash script that decodes Kubernetes secrets |
 | `kubeseal-auto` | An interactive wrapper for kubeseal binary |
 
