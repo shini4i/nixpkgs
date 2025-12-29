@@ -44,6 +44,7 @@ nix run github:shini4i/nixpkgs#kubeseal-auto
 |---------|-------------|
 | `argo-compare` | Comparison tool for ArgoCD Application manifests between Git branches |
 | `kd` | A bash script that decodes Kubernetes secrets |
+| `gnome-shell-extension-elgato-lights` | GNOME Shell extension for controlling Elgato Key Lights |
 | `kubeseal-auto` | An interactive wrapper for kubeseal binary |
 
 ## Adding New Packages
