@@ -12,13 +12,13 @@
 */
 stdenv.mkDerivation rec {
   pname = "gnome-shell-extension-elgato-lights";
-  version = "0.1.2";
+  version = "0.1.3";
 
   src = fetchFromGitHub {
     owner = "shini4i";
     repo = "gnome-shell-extension-elgato-lights";
-    rev = "v0.1.2";
-    sha256 = "sha256-m+/hca9J9zi5YfSLDGejJGiE95VGvFNHnUoiKd2YhNA=";
+    rev = "v0.1.3";
+    sha256 = "sha256-n8isGxD+Pl9y7rI5R6kNrb/OWT3FCbkHOYmNE5L86yI=";
   };
 
   nativeBuildInputs = [glib];
