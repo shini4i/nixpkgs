@@ -41,6 +41,7 @@ stdenv.mkDerivation rec {
       metadata.json \
       stylesheet.css \
       lib \
+      ui \
       icons \
       "$extensionDir/"
 
