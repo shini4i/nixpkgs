@@ -1,0 +1,109 @@
+# openfortivpn-gui - GTK4/libadwaita GUI client for Fortinet SSL VPN
+# Wraps openfortivpn CLI tool with a modern desktop interface
+{
+  lib,
+  buildGoModule,
+  fetchFromGitHub,
+  fetchurl,
+  pkg-config,
+  wrapGAppsHook4,
+  gobject-introspection,
+  gtk4,
+  libadwaita,
+  glib,
+  libsecret,
+  openfortivpn,
+  librsvg,
+}:
+
+buildGoModule rec {
+  pname = "openfortivpn-gui";
+  version = "0.1.0";
+
+  src = fetchFromGitHub {
+    owner = "shini4i";
+    repo = "openfortivpn-gui";
+    rev = "v${version}";
+    hash = "sha256-MPldG5MfMfp4WVl9vz86V1yWB2AvKO3hYKsFmRgBvF0=";
+  };
+
+  vendorHash = "sha256-REBq9xL2ybU+cGAvTTkyFiv29y9T56f/i+YN7eDTTMk=";
+
+  # Fortinet VPN icon from official Fortinet icon library.
+  # Note: External URL may change; hash ensures integrity and reproducibility.
+  icon = fetchurl {
+    url = "https://icons.fortinet.com/icons/New%20-%20Updated%20icons%20for%202024/April%202k24/VPN.svg";
+    hash = "sha256-WI8LseHqjLtX95O1eK/NM6m8wjzUmild7ufB8gcLik4=";
+  };
+
+  nativeBuildInputs = [
+    pkg-config
+    wrapGAppsHook4
+    gobject-introspection
+    librsvg
+  ];
+
+  buildInputs = [
+    gtk4
+    libadwaita
+    glib
+    libsecret
+  ];
+
+  ldflags = [
+    "-s"
+    "-w"
+    "-X github.com/shini4i/openfortivpn-gui/internal/ui.Version=${version}"
+  ];
+
+  # The main package is in cmd/openfortivpn-gui
+  subPackages = [ "cmd/openfortivpn-gui" ];
+
+  # CGO builds with gotk4 GTK4 bindings retain references to Go toolchain
+  # due to runtime type information embedded by the bindings.
+  allowGoReference = true;
+
+  postInstall = ''
+    # Install the desktop file
+    install -Dm644 $src/data/com.github.shini4i.openfortivpn-gui.desktop \
+      $out/share/applications/com.github.shini4i.openfortivpn-gui.desktop
+
+    # Convert and install the icon to hicolor theme
+    for size in 16 24 32 48 64 128 256 512; do
+      install -d $out/share/icons/hicolor/''${size}x''${size}/apps
+      rsvg-convert -w $size -h $size ${icon} \
+        -o $out/share/icons/hicolor/''${size}x''${size}/apps/openfortivpn-gui.png
+    done
+
+    # Install SVG icon for scalable
+    install -Dm644 ${icon} \
+      $out/share/icons/hicolor/scalable/apps/openfortivpn-gui.svg
+  '';
+
+  # Update the desktop file to use our icon
+  postFixup = ''
+    substituteInPlace $out/share/applications/com.github.shini4i.openfortivpn-gui.desktop \
+      --replace-fail "Icon=network-vpn" "Icon=openfortivpn-gui"
+  '';
+
+  # Add openfortivpn to PATH via GApps wrapper (more idiomatic than separate wrapProgram)
+  preFixup = ''
+    gappsWrapperArgs+=(--prefix PATH : ${lib.makeBinPath [ openfortivpn ]})
+  '';
+
+  meta = with lib; {
+    description = "GTK4/libadwaita GUI client for Fortinet SSL VPN";
+    longDescription = ''
+      A modern GTK4/libadwaita GUI client for Fortinet SSL VPN on Linux,
+      wrapping the openfortivpn CLI tool. Features include multiple VPN
+      profiles, various authentication methods (password, OTP, certificate,
+      SAML/SSO), system tray integration, secure credential storage in
+      system keyring, and configurable routing options.
+    '';
+    homepage = "https://github.com/shini4i/openfortivpn-gui";
+    license = licenses.gpl3Only;
+    maintainers = [ ];
+    platforms = platforms.linux;
+    mainProgram = "openfortivpn-gui";
+  };
+}

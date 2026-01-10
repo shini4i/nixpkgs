@@ -43,9 +43,10 @@ nix run github:shini4i/nixpkgs#kubeseal-auto
 | Package | Description |
 |---------|-------------|
 | `argo-compare` | Comparison tool for ArgoCD Application manifests between Git branches |
-| `kd` | A bash script that decodes Kubernetes secrets |
 | `gnome-shell-extension-elgato-lights` | GNOME Shell extension for controlling Elgato Key Lights |
+| `kd` | A bash script that decodes Kubernetes secrets |
 | `kubeseal-auto` | An interactive wrapper for kubeseal binary |
+| `openfortivpn-gui` | GTK4/libadwaita GUI client for Fortinet SSL VPN |
 
 ## Adding New Packages
 
