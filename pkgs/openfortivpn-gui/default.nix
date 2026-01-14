@@ -1,5 +1,9 @@
 # openfortivpn-gui - GTK4/libadwaita GUI client for Fortinet SSL VPN
 # Wraps openfortivpn CLI tool with a modern desktop interface
+#
+# This package includes:
+# - openfortivpn-gui: The main GTK4/libadwaita GUI application
+# - openfortivpn-gui-helper: Privileged helper daemon for password-less VPN operations
 {
   lib,
   buildGoModule,
@@ -18,13 +22,13 @@
 
 buildGoModule rec {
   pname = "openfortivpn-gui";
-  version = "0.1.0";
+  version = "0.2.0-unstable-2025-01-14";
 
   src = fetchFromGitHub {
     owner = "shini4i";
     repo = "openfortivpn-gui";
-    rev = "v${version}";
-    hash = "sha256-MPldG5MfMfp4WVl9vz86V1yWB2AvKO3hYKsFmRgBvF0=";
+    rev = "958789562a5c9988f6aebe4cbe87cf4208cd158d";
+    hash = "sha256-yLCKqhn6SXQe0X+GLugDCNXZxP/NZRmDZb1/lKKF3lM=";
   };
 
   vendorHash = "sha256-REBq9xL2ybU+cGAvTTkyFiv29y9T56f/i+YN7eDTTMk=";
@@ -54,10 +58,14 @@ buildGoModule rec {
     "-s"
     "-w"
     "-X github.com/shini4i/openfortivpn-gui/internal/ui.Version=${version}"
+    "-X main.version=${version}"
   ];
 
-  # The main package is in cmd/openfortivpn-gui
-  subPackages = [ "cmd/openfortivpn-gui" ];
+  # Build both the GUI and the helper daemon
+  subPackages = [
+    "cmd/openfortivpn-gui"
+    "cmd/openfortivpn-gui-helper"
+  ];
 
   # CGO builds with gotk4 GTK4 bindings retain references to Go toolchain
   # due to runtime type information embedded by the bindings.
@@ -78,6 +86,13 @@ buildGoModule rec {
     # Install SVG icon for scalable
     install -Dm644 ${icon} \
       $out/share/icons/hicolor/scalable/apps/openfortivpn-gui.svg
+
+    # Install the systemd service file for the helper daemon.
+    # Note: NixOS users should use the nixosModules.openfortivpn-gui-helper module
+    # instead, which creates a properly configured service with Nix store paths.
+    # This file is provided for non-NixOS Linux distributions.
+    install -Dm644 $src/data/openfortivpn-gui-helper.service \
+      $out/lib/systemd/system/openfortivpn-gui-helper.service
   '';
 
   # Update the desktop file to use our icon
@@ -92,13 +107,18 @@ buildGoModule rec {
   '';
 
   meta = with lib; {
-    description = "GTK4/libadwaita GUI client for Fortinet SSL VPN";
+    description = "GTK4/libadwaita GUI client for Fortinet SSL VPN with helper daemon";
     longDescription = ''
       A modern GTK4/libadwaita GUI client for Fortinet SSL VPN on Linux,
       wrapping the openfortivpn CLI tool. Features include multiple VPN
       profiles, various authentication methods (password, OTP, certificate,
       SAML/SSO), system tray integration, secure credential storage in
       system keyring, and configurable routing options.
+
+      This package also includes openfortivpn-gui-helper, a privileged helper
+      daemon that eliminates password prompts for VPN operations. The daemon
+      runs as a systemd service with root privileges, communicating with the
+      GUI via a UNIX socket.
     '';
     homepage = "https://github.com/shini4i/openfortivpn-gui";
     license = licenses.gpl3Only;

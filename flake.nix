@@ -1,5 +1,5 @@
 {
-  description = "Custom Nix packages collection";
+  description = "Custom Nix packages and NixOS modules collection";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -63,5 +63,10 @@
           };
         }
       );
+
+      # NixOS modules for service configuration
+      nixosModules = {
+        openfortivpn-gui-helper = ./modules/openfortivpn-gui-helper.nix;
+      };
     };
 }
