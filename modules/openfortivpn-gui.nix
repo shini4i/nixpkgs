@@ -1,8 +1,13 @@
-# NixOS module for openfortivpn-gui-helper daemon
+# NixOS module for openfortivpn-gui
 #
-# The helper daemon runs as a systemd service with root privileges and handles
-# VPN connection management on behalf of unprivileged GUI clients. Communication
-# happens over a UNIX socket using JSON messages.
+# Provides a GTK4/libadwaita GUI client for Fortinet SSL VPN with an optional
+# privileged helper daemon for passwordless VPN operations.
+#
+# Usage:
+#   programs.openfortivpn-gui = {
+#     enable = true;          # Installs the GUI application
+#     helper.enable = true;   # Enables the helper daemon (optional)
+#   };
 #
 # Users must be added to the configured group to access the helper daemon:
 #   users.users.youruser.extraGroups = [ "openfortivpn-gui" ];
@@ -19,42 +24,54 @@
 }:
 
 let
-  cfg = config.services.openfortivpn-gui-helper;
+  cfg = config.programs.openfortivpn-gui;
 in
 {
-  options.services.openfortivpn-gui-helper = {
-    enable = lib.mkEnableOption "OpenFortiVPN GUI helper daemon";
+  options.programs.openfortivpn-gui = {
+    enable = lib.mkEnableOption "OpenFortiVPN GUI client";
 
     package = lib.mkOption {
       type = lib.types.package;
-      default = pkgs.openfortivpn-gui;
-      defaultText = lib.literalExpression "pkgs.openfortivpn-gui";
-      description = "The openfortivpn-gui package to use (contains the helper binary).";
-    };
-
-    openfortivpnPackage = lib.mkOption {
-      type = lib.types.package;
-      default = pkgs.openfortivpn;
-      defaultText = lib.literalExpression "pkgs.openfortivpn";
-      description = "The openfortivpn package to use for VPN connections.";
-    };
-
-    group = lib.mkOption {
-      type = lib.types.str;
-      default = "openfortivpn-gui";
       description = ''
-        Group that can access the helper daemon socket.
-        Users must be added to this group to use the helper daemon.
+        The openfortivpn-gui package to use.
+
+        When importing via the flake's nixosModules.openfortivpn-gui, this is
+        automatically set to the flake's package. When importing the module
+        directly, this option must be set explicitly.
       '';
+      example = lib.literalExpression "pkgs.openfortivpn-gui";
+    };
+
+    helper = {
+      enable = lib.mkEnableOption "OpenFortiVPN GUI helper daemon for passwordless VPN operations";
+
+      openfortivpnPackage = lib.mkOption {
+        type = lib.types.package;
+        default = pkgs.openfortivpn;
+        defaultText = lib.literalExpression "pkgs.openfortivpn";
+        description = "The openfortivpn package to use for VPN connections.";
+      };
+
+      group = lib.mkOption {
+        type = lib.types.str;
+        default = "openfortivpn-gui";
+        example = "vpn-users";
+        description = ''
+          Group that can access the helper daemon socket.
+          Users must be added to this group to use the helper daemon.
+        '';
+      };
     };
   };
 
   config = lib.mkIf cfg.enable {
-    # Create the group for socket access control
-    users.groups.${cfg.group} = { };
+    # Install the GUI application
+    environment.systemPackages = [ cfg.package ];
 
-    # Systemd service configuration
-    systemd.services.openfortivpn-gui-helper = {
+    # Helper daemon configuration (optional)
+    users.groups.${cfg.helper.group} = lib.mkIf cfg.helper.enable { };
+
+    systemd.services.openfortivpn-gui-helper = lib.mkIf cfg.helper.enable {
       description = "OpenFortiVPN GUI Helper Daemon";
       documentation = [ "https://github.com/shini4i/openfortivpn-gui" ];
       after = [ "network.target" ];
@@ -62,7 +79,7 @@ in
 
       serviceConfig = {
         Type = "notify";
-        ExecStart = "${lib.getExe' cfg.package "openfortivpn-gui-helper"} --openfortivpn ${lib.getExe cfg.openfortivpnPackage}";
+        ExecStart = "${lib.getExe' cfg.package "openfortivpn-gui-helper"} --openfortivpn ${lib.getExe cfg.helper.openfortivpnPackage}";
         Restart = "on-failure";
         RestartSec = 5;
 
@@ -113,7 +130,7 @@ in
       postStart = ''
         for i in $(seq 1 50); do
           if [ -S /run/openfortivpn-gui/helper.sock ]; then
-            chown root:${cfg.group} /run/openfortivpn-gui/helper.sock
+            chown root:${cfg.helper.group} /run/openfortivpn-gui/helper.sock
             chmod 0660 /run/openfortivpn-gui/helper.sock
             exit 0
           fi

@@ -66,7 +66,14 @@
 
       # NixOS modules for service configuration
       nixosModules = {
-        openfortivpn-gui-helper = ./modules/openfortivpn-gui-helper.nix;
+        openfortivpn-gui =
+          { lib, pkgs, ... }:
+          {
+            imports = [ ./modules/openfortivpn-gui.nix ];
+
+            # Inject the flake's package as default
+            programs.openfortivpn-gui.package = lib.mkDefault self.packages.${pkgs.stdenv.hostPlatform.system}.openfortivpn-gui;
+          };
       };
     };
 }
