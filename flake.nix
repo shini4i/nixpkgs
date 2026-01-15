@@ -1,5 +1,5 @@
 {
-  description = "Custom Nix packages collection";
+  description = "Custom Nix packages and NixOS modules collection";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -63,5 +63,17 @@
           };
         }
       );
+
+      # NixOS modules for service configuration
+      nixosModules = {
+        openfortivpn-gui =
+          { lib, pkgs, ... }:
+          {
+            imports = [ ./modules/openfortivpn-gui.nix ];
+
+            # Inject the flake's package as default
+            programs.openfortivpn-gui.package = lib.mkDefault self.packages.${pkgs.stdenv.hostPlatform.system}.openfortivpn-gui;
+          };
+      };
     };
 }
