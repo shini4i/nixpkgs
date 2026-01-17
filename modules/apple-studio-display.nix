@@ -11,6 +11,10 @@
 # The extension will appear in GNOME Quick Settings when an Apple Studio
 # Display is connected.
 #
+# Note: Users must be in the "video" group to access display devices.
+# This follows NixOS conventions for brightness control (see programs.light).
+# Example: users.users.<username>.extraGroups = [ "video" ];
+#
 # Note: This module is designed to be used via the flake's nixosModules.
 # The packages are automatically injected by the flake wrapper.
 {
@@ -59,7 +63,7 @@ in
     # udev rules for Apple Studio Display HID access
     # VendorID: 0x05ac (Apple), ProductID: 0x1114 (Studio Display)
     services.udev.extraRules = ''
-      SUBSYSTEM=="hidraw", ATTRS{idVendor}=="05ac", ATTRS{idProduct}=="1114", MODE="0660", TAG+="uaccess"
+      SUBSYSTEM=="hidraw", ATTRS{idVendor}=="05ac", ATTRS{idProduct}=="1114", GROUP="video", MODE="0660"
     '';
 
     # Systemd user service for the D-Bus daemon
@@ -99,8 +103,8 @@ in
         SystemCallArchitectures = "native";
         ProtectClock = true;
 
-        # Only needs UNIX socket for D-Bus IPC
-        RestrictAddressFamilies = [ "AF_UNIX" ];
+        # AF_UNIX for D-Bus IPC, AF_NETLINK for udev hot-plug monitoring
+        RestrictAddressFamilies = [ "AF_UNIX" "AF_NETLINK" ];
 
         # Capability restrictions - no elevated privileges needed
         CapabilityBoundingSet = "";
