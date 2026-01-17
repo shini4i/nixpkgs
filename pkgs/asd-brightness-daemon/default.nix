@@ -21,11 +21,11 @@ buildGoModule rec {
   src = fetchFromGitHub {
     owner = "shini4i";
     repo = "gnome-shell-extension-apple-studio-display";
-    rev = "06886594044d0ce214c2e89a86f0360029a401c3";
-    hash = "sha256-/54iBNyv8SFTKxxOPm59+r8/SNsNIWTzoFcIlccKMOI=";
+    rev = "e773dcc3e8421bf539e573693992e580fbcfadc8";
+    hash = "sha256-WQNwr0pNi0ltyO04waKkcIsbS1r5v27KhuHs3prDgeM=";
   };
 
-  vendorHash = "sha256-mzI3KZkqTTvZct+eQPkFgGHRznILzbp+m5vR7bFMVK4=";
+  vendorHash = "sha256-YHVtm/lW3OV3qWFUVH//bsLsxTdzMAYN3F8lUwsKpsU=";
 
   # The Go module is in the daemon subdirectory
   modRoot = "daemon";

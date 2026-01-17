@@ -60,12 +60,11 @@ in
     # Install the GNOME Shell extension
     environment.systemPackages = [ cfg.extensionPackage ];
 
-    # udev rules for Apple Studio Display USB access
+    # udev rules for Apple Studio Display hidraw access
     # VendorID: 0x05ac (Apple), ProductID: 0x1114 (Studio Display)
-    # Note: Uses SUBSYSTEM=="usb" because the daemon's HID library (karalabe/hid)
-    # uses the libusb backend, accessing /dev/bus/usb/* instead of /dev/hidraw*
+    # The daemon uses sstallion/go-hid which accesses /dev/hidraw* devices directly
     services.udev.extraRules = ''
-      SUBSYSTEM=="usb", ATTR{idVendor}=="05ac", ATTR{idProduct}=="1114", GROUP="video", MODE="0660"
+      SUBSYSTEM=="hidraw", ATTRS{idVendor}=="05ac", ATTRS{idProduct}=="1114", GROUP="video", MODE="0660"
     '';
 
     # Systemd user service for the D-Bus daemon
@@ -91,13 +90,8 @@ in
         ProtectKernelModules = true;
         ProtectControlGroups = true;
 
-        # Device access - requires access to USB devices for libusb backend
-        # Using DevicePolicy=auto to support hot-plug: with "closed", the cgroup
-        # tracks devices by major:minor numbers which change on USB reconnection,
-        # causing the daemon to lose access until restart. "auto" allows dynamic
-        # device access while udev rules still restrict permissions to video group.
+        # Device access - hidraw devices are accessed directly via udev permissions
         PrivateDevices = false;
-        DevicePolicy = "auto";
 
         # Additional hardening
         RestrictNamespaces = true;
