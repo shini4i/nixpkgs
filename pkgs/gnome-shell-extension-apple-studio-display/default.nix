@@ -17,8 +17,8 @@ stdenv.mkDerivation rec {
   src = fetchFromGitHub {
     owner = "shini4i";
     repo = "gnome-shell-extension-apple-studio-display";
-    rev = "599d8c56039e2d1663a5d244ce5b76a2352d13d8";
-    hash = "sha256-NWQr+YCQOfzgbJmQKGSp2HdkRsd6P0G898RTJ5YHZNk=";
+    rev = "036b487289594de48b2f6241b3d3620552c21c2b";
+    hash = "sha256-mz79R8KREEC4xEF4Hrc8+iu2I59knOpiLXWIGmL32Vo=";
   };
 
   uuid = "asd-brightness@shini4i.github.io";
