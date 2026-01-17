@@ -92,11 +92,12 @@ in
         ProtectControlGroups = true;
 
         # Device access - requires access to USB devices for libusb backend
-        # DeviceAllow permits /dev/bus/usb/* but actual access is restricted by
-        # udev rules (only Apple Studio Display has video group permissions)
+        # Using DevicePolicy=auto to support hot-plug: with "closed", the cgroup
+        # tracks devices by major:minor numbers which change on USB reconnection,
+        # causing the daemon to lose access until restart. "auto" allows dynamic
+        # device access while udev rules still restrict permissions to video group.
         PrivateDevices = false;
-        DevicePolicy = "closed";
-        DeviceAllow = [ "/dev/bus/usb/* rw" ];
+        DevicePolicy = "auto";
 
         # Additional hardening
         RestrictNamespaces = true;
