@@ -66,6 +66,16 @@
 
       # NixOS modules for service configuration
       nixosModules = {
+        apple-studio-display =
+          { lib, pkgs, ... }:
+          {
+            imports = [ ./modules/apple-studio-display.nix ];
+
+            # Inject the flake's packages as defaults
+            programs.apple-studio-display.daemonPackage = lib.mkDefault self.packages.${pkgs.stdenv.hostPlatform.system}.asd-brightness-daemon;
+            programs.apple-studio-display.extensionPackage = lib.mkDefault self.packages.${pkgs.stdenv.hostPlatform.system}.gnome-shell-extension-apple-studio-display;
+          };
+
         openfortivpn-gui =
           { lib, pkgs, ... }:
           {
