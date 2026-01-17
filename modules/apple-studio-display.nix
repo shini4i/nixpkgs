@@ -60,10 +60,12 @@ in
     # Install the GNOME Shell extension
     environment.systemPackages = [ cfg.extensionPackage ];
 
-    # udev rules for Apple Studio Display HID access
+    # udev rules for Apple Studio Display USB access
     # VendorID: 0x05ac (Apple), ProductID: 0x1114 (Studio Display)
+    # Note: Uses SUBSYSTEM=="usb" because the daemon's HID library (karalabe/hid)
+    # uses the libusb backend, accessing /dev/bus/usb/* instead of /dev/hidraw*
     services.udev.extraRules = ''
-      SUBSYSTEM=="hidraw", ATTRS{idVendor}=="05ac", ATTRS{idProduct}=="1114", GROUP="video", MODE="0660"
+      SUBSYSTEM=="usb", ATTR{idVendor}=="05ac", ATTR{idProduct}=="1114", GROUP="video", MODE="0660"
     '';
 
     # Systemd user service for the D-Bus daemon
@@ -89,10 +91,12 @@ in
         ProtectKernelModules = true;
         ProtectControlGroups = true;
 
-        # Device access - requires access to hidraw devices for USB HID
+        # Device access - requires access to USB devices for libusb backend
+        # DeviceAllow permits /dev/bus/usb/* but actual access is restricted by
+        # udev rules (only Apple Studio Display has video group permissions)
         PrivateDevices = false;
         DevicePolicy = "closed";
-        DeviceAllow = [ "/dev/hidraw* rw" ];
+        DeviceAllow = [ "/dev/bus/usb/* rw" ];
 
         # Additional hardening
         RestrictNamespaces = true;
