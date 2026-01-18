@@ -21,8 +21,8 @@ buildGoModule rec {
   src = fetchFromGitHub {
     owner = "shini4i";
     repo = "gnome-shell-extension-apple-studio-display";
-    rev = "705779da4ee341a62f59981a0efc489b10b340b7";
-    hash = "sha256-D4VZYbvtWEyB8gsj1CFP5c7QlEBt5BfN8ljoWiiN5xs=";
+    rev = "83747fb8045de9c6a5c69a73199bc710fc1aa60b";
+    hash = "sha256-2K/jGKHJMUFWt1H5OfPZRhpBUgvYcQhdl1Y66bmGKuw=";
   };
 
   vendorHash = "sha256-YHVtm/lW3OV3qWFUVH//bsLsxTdzMAYN3F8lUwsKpsU=";
