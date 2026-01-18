@@ -17,8 +17,8 @@ stdenv.mkDerivation rec {
   src = fetchFromGitHub {
     owner = "shini4i";
     repo = "gnome-shell-extension-apple-studio-display";
-    rev = "33826faceb5df331710337ea277ebb9c110598ad";
-    hash = "sha256-ijDvE1VMBoAInNBdRs1ugbp/g8Fq0W6dHvvCLDhzaCM=";
+    rev = "ca0d13109c2c5194d1b3f83fecc3f90e9ae2a97b";
+    hash = "sha256-6kWQgTebQcfrriqUSeQPZjhj/aRsFLww0bmyxn6LQSI=";
   };
 
   uuid = "asd-brightness@shini4i.github.io";
@@ -62,7 +62,7 @@ stdenv.mkDerivation rec {
       the display hardware.
     '';
     homepage = "https://github.com/shini4i/gnome-shell-extension-apple-studio-display";
-    license = licenses.mit;
+    license = licenses.gpl3Only;
     platforms = platforms.linux;
     maintainers = [ ];
   };
