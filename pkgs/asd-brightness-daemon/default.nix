@@ -16,13 +16,13 @@
   */
 buildGoModule rec {
   pname = "asd-brightness-daemon";
-  version = "0.1.0";
+  version = "0.1.1";
 
   src = fetchFromGitHub {
     owner = "shini4i";
     repo = "gnome-shell-extension-apple-studio-display";
-    rev = "v0.1.0";
-    hash = "sha256-6kWQgTebQcfrriqUSeQPZjhj/aRsFLww0bmyxn6LQSI=";
+    rev = "v0.1.1";
+    hash = "sha256-1mX7To45mpfzdcZ4rAl/SfNU2IRJJGtxEEDX+E0ZbrA=";
   };
 
   vendorHash = "sha256-YHVtm/lW3OV3qWFUVH//bsLsxTdzMAYN3F8lUwsKpsU=";
