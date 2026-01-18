@@ -43,10 +43,46 @@ nix run github:shini4i/nixpkgs#kubeseal-auto
 | Package | Description |
 |---------|-------------|
 | `argo-compare` | Comparison tool for ArgoCD Application manifests between Git branches |
+| `asd-brightness-daemon` | D-Bus daemon for Apple Studio Display brightness control via USB HID |
+| `gnome-shell-extension-apple-studio-display` | GNOME Shell extension for Apple Studio Display brightness control |
 | `gnome-shell-extension-elgato-lights` | GNOME Shell extension for controlling Elgato Key Lights |
 | `kd` | A bash script that decodes Kubernetes secrets |
 | `kubeseal-auto` | An interactive wrapper for kubeseal binary |
 | `openfortivpn-gui` | GTK4/libadwaita GUI client for Fortinet SSL VPN |
+
+## Available Modules
+
+NixOS modules for service configuration. Import via `nixosModules.<name>`.
+
+| Module | Description |
+|--------|-------------|
+| `apple-studio-display` | Apple Studio Display brightness control with systemd service and udev rules |
+| `openfortivpn-gui` | OpenFortiVPN GUI with optional privileged helper daemon |
+
+### Example: Apple Studio Display
+
+```nix
+{ inputs, ... }: {
+  imports = [ inputs.shini4i-pkgs.nixosModules.apple-studio-display ];
+
+  programs.apple-studio-display.enable = true;
+}
+```
+
+### Example: OpenFortiVPN GUI
+
+```nix
+{ inputs, ... }: {
+  imports = [ inputs.shini4i-pkgs.nixosModules.openfortivpn-gui ];
+
+  programs.openfortivpn-gui = {
+    enable = true;
+    helper.enable = true;  # Optional privileged helper
+  };
+
+  users.users.youruser.extraGroups = [ "openfortivpn-gui" ];
+}
+```
 
 ## Adding New Packages
 

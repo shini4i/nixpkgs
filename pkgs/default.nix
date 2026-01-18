@@ -4,8 +4,10 @@
 
 {
   argo-compare = pkgs.callPackage ./argo-compare { };
+  asd-brightness-daemon = pkgs.callPackage ./asd-brightness-daemon { };
+  gnome-shell-extension-apple-studio-display = pkgs.callPackage ./gnome-shell-extension-apple-studio-display { };
+  gnome-shell-extension-elgato-lights = pkgs.callPackage ./gnome-shell-extension-elgato-lights { };
   kd = pkgs.callPackage ./kd { };
   kubeseal-auto = pkgs.callPackage ./kubeseal-auto { inherit p2nix; };
-  gnome-shell-extension-elgato-lights = pkgs.callPackage ./gnome-shell-extension-elgato-lights { };
   openfortivpn-gui = pkgs.callPackage ./openfortivpn-gui { };
 }
