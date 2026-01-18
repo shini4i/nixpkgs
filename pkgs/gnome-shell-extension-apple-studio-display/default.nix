@@ -12,12 +12,12 @@
   */
 stdenv.mkDerivation rec {
   pname = "gnome-shell-extension-apple-studio-display";
-  version = "0.1.0-unstable-2026-01-18";
+  version = "0.1.0";
 
   src = fetchFromGitHub {
     owner = "shini4i";
     repo = "gnome-shell-extension-apple-studio-display";
-    rev = "ca0d13109c2c5194d1b3f83fecc3f90e9ae2a97b";
+    rev = "v0.1.0";
     hash = "sha256-6kWQgTebQcfrriqUSeQPZjhj/aRsFLww0bmyxn6LQSI=";
   };
 
