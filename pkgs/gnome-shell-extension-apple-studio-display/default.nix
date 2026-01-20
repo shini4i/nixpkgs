@@ -12,13 +12,13 @@
   */
 stdenv.mkDerivation rec {
   pname = "gnome-shell-extension-apple-studio-display";
-  version = "0.1.1";
+  version = "0.1.2";
 
   src = fetchFromGitHub {
     owner = "shini4i";
     repo = "gnome-shell-extension-apple-studio-display";
-    rev = "v0.1.1";
-    hash = "sha256-1mX7To45mpfzdcZ4rAl/SfNU2IRJJGtxEEDX+E0ZbrA=";
+    rev = "v0.1.2";
+    hash = "sha256-i2kc+cpWbsFffAEab9+e4CLwpujkKcwFeOh8aRVQg+Y=";
   };
 
   uuid = "asd-brightness@shini4i.github.io";
