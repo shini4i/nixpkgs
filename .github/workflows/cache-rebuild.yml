@@ -82,14 +82,15 @@ jobs:
             exit 1
           fi
 
-          # Extract the hash part (e.g., /nix/store/abc123-name -> abc123-name)
-          STORE_HASH="${STORE_PATH##*/}"
+          # Extract just the hash (e.g., /nix/store/abc123-name-1.0 -> abc123)
+          STORE_NAME="${STORE_PATH##*/}"
+          STORE_HASH="${STORE_NAME%%-*}"
 
           # Check if the narinfo exists in Cachix
           HTTP_STATUS=$(curl -s --connect-timeout 10 --max-time 30 -o /dev/null -w "%{http_code}" "${CACHE_URL}/${STORE_HASH}.narinfo")
 
           if [[ "$HTTP_STATUS" == "200" ]]; then
-            echo "Package $PACKAGE ($STORE_HASH) already in cache, skipping build"
+            echo "Package $PACKAGE already in cache, skipping build"
           else
             echo "Package $PACKAGE not in cache (HTTP $HTTP_STATUS), building..."
             nix build ".#${PACKAGE}"
