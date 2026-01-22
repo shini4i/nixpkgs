@@ -1,0 +1,97 @@
+name: Cache Rebuild
+
+on:
+  schedule:
+    - cron: '0 2 * * 0'  # Weekly on Sunday at 2 AM UTC
+  push:
+    branches: [main]
+    paths:
+      - 'pkgs/**'
+      - 'flake.nix'
+      - 'flake.lock'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CACHIX_CACHE_NAME: shini4i
+
+jobs:
+  list-packages:
+    runs-on: ubuntu-latest
+    outputs:
+      packages: ${{ steps.list.outputs.packages }}
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - id: list
+        run: |
+          if [[ ! -d pkgs ]]; then
+            echo "packages=[]" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          PACKAGES=$(ls -d pkgs/*/ 2>/dev/null | xargs -n1 basename | jq -R -s -c 'split("\n") | map(select(length > 0))') || PACKAGES="[]"
+
+          if [[ -z "$PACKAGES" || "$PACKAGES" == "[]" ]]; then
+            echo "packages=[]" >> $GITHUB_OUTPUT
+          else
+            echo "packages=$PACKAGES" >> $GITHUB_OUTPUT
+          fi
+
+  build-cache:
+    needs: list-packages
+    if: needs.list-packages.outputs.packages != '[]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ${{ fromJson(needs.list-packages.outputs.packages) }}
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - uses: cachix/install-nix-action@4e002c8ec80594ecd40e759629461e26c8abed15 # v31.9.0
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+
+      - uses: cachix/cachix-action@0fc020193b5a1fa3ac4575aa3a7d3aa6a35435ad # v16
+        with:
+          name: ${{ env.CACHIX_CACHE_NAME }}
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+
+      - name: Check cache and build if needed
+        env:
+          CACHE_URL: https://${{ env.CACHIX_CACHE_NAME }}.cachix.org
+        run: |
+          PACKAGE="${{ matrix.package }}"
+
+          # Validate package name contains only safe characters
+          if [[ ! "$PACKAGE" =~ ^[a-zA-Z0-9_-]+$ ]]; then
+            echo "::error::Invalid package name: $PACKAGE"
+            exit 1
+          fi
+
+          echo "Checking if $PACKAGE is already in cache..."
+
+          # Get the store path for this package
+          if ! STORE_PATH=$(nix eval --raw ".#${PACKAGE}.outPath" 2>&1); then
+            echo "::error::Failed to evaluate store path for $PACKAGE: $STORE_PATH"
+            exit 1
+          fi
+
+          # Extract the hash part (e.g., /nix/store/abc123-name -> abc123-name)
+          STORE_HASH="${STORE_PATH##*/}"
+
+          # Check if the narinfo exists in Cachix
+          HTTP_STATUS=$(curl -s --connect-timeout 10 --max-time 30 -o /dev/null -w "%{http_code}" "${CACHE_URL}/${STORE_HASH}.narinfo")
+
+          if [[ "$HTTP_STATUS" == "200" ]]; then
+            echo "Package $PACKAGE ($STORE_HASH) already in cache, skipping build"
+          else
+            echo "Package $PACKAGE not in cache (HTTP $HTTP_STATUS), building..."
+            nix build ".#${PACKAGE}"
+            echo "Built $PACKAGE (cachix-action handles the push)"
+          fi
