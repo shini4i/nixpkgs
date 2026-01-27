@@ -11,7 +11,7 @@
   * Queries systemd-logind via D-Bus to check lid state. Returns 0 if lid is closed
   * (skip fingerprint), 1 if lid is open (proceed with fingerprint).
   */
-stdenv.mkDerivation {
+stdenv.mkDerivation rec {
   pname = "pam-lid-block";
   version = "0-unstable-2026-01-27";
 
@@ -32,6 +32,7 @@ stdenv.mkDerivation {
     runHook preBuild
 
     $CC -O2 -Wall -Wextra -fstack-protector-strong -fPIE \
+        -DVERSION=\"${version}\" \
         $(pkg-config --cflags libsystemd) \
         -o check-lid src/check-lid.c \
         -pie $(pkg-config --libs libsystemd)
