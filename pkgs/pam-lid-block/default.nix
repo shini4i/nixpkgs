@@ -13,13 +13,13 @@
   */
 stdenv.mkDerivation rec {
   pname = "pam-lid-block";
-  version = "0-unstable-2026-01-27";
+  version = "0.1.0";
 
   src = fetchFromGitHub {
     owner = "shini4i";
     repo = "pam-lid-block";
-    rev = "da5781c76d0c4ef9710a7314bdba6cecd67fc958";
-    hash = "sha256-KcUylbE3TYOmSg4eXGr9kVNq2dVRGgdHT4dVh+CeBW0=";
+    rev = "v0.1.0";
+    hash = "sha256-Q9VeT7gKV3zB6VuQg5RKCNA8SLgJ64mcHWLHmd7Sn0k=";
   };
 
   nativeBuildInputs = [ pkg-config ];
