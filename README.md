@@ -48,6 +48,7 @@ nix run github:shini4i/nixpkgs#kubeseal-auto
 | `gnome-shell-extension-elgato-lights` | GNOME Shell extension for controlling Elgato Key Lights |
 | `kd` | A bash script that decodes Kubernetes secrets |
 | `kubeseal-auto` | An interactive wrapper for kubeseal binary |
+| `pam-lid-block` | PAM helper to skip fingerprint auth when laptop lid is closed |
 | `openfortivpn-gui` | GTK4/libadwaita GUI client for Fortinet SSL VPN |
 
 ## Available Modules

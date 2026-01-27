@@ -10,4 +10,5 @@
   kd = pkgs.callPackage ./kd { };
   kubeseal-auto = pkgs.callPackage ./kubeseal-auto { inherit p2nix; };
   openfortivpn-gui = pkgs.callPackage ./openfortivpn-gui { };
+  pam-lid-block = pkgs.callPackage ./pam-lid-block { };
 }
