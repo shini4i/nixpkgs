@@ -1,0 +1,32 @@
+Drop `tomli` from the bootstrap `build` and `pyproject-hooks` overrides.
+
+Upstream poetry2nix is dormant since April 2025. Recent nixpkgs (commit
+8ea6bde8, "treewide: prune pythonOlder 3.10/3.11") removed the `tomli`
+function arg from pkgs/development/python-modules/{build,pyproject-hooks}
+since Python 3.11+ ships `tomllib` in stdlib. poetry2nix still passes
+`tomli` here, which trips `makeOverridable`'s arg validation:
+
+  error: function 'anonymous lambda' called with unexpected argument 'tomli'
+
+Remove until upstream fixes this (nix-community/poetry2nix).
+
+--- a/overrides/default.nix
++++ b/overrides/default.nix
+@@ -160,7 +160,7 @@
+       };
+
+       build = bootstrappingBase.build.override {
+-        inherit (final) buildPythonPackage flit-core packaging pyproject-hooks tomli;
++        inherit (final) buildPythonPackage flit-core packaging pyproject-hooks;
+       };
+
+       flit-core = bootstrappingBase.flit-core.override {
+@@ -176,7 +176,7 @@
+       };
+
+       pyproject-hooks = bootstrappingBase.pyproject-hooks.override {
+-        inherit (final) buildPythonPackage flit-core tomli;
++        inherit (final) buildPythonPackage flit-core;
+       };
+
+       wheel = bootstrappingBase.wheel.override {

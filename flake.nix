@@ -25,9 +25,19 @@
       # Nixpkgs instantiated for each system
       nixpkgsFor = forAllSystems (system: import nixpkgs { inherit system; });
 
-      # poetry2nix instantiated for each system
+      # poetry2nix instantiated for each system.
+      # Upstream is dormant; patch removes a `tomli` arg that no longer exists
+      # in nixpkgs' python-modules/build (stdlib `tomllib` since Python 3.11).
       poetry2nixFor = forAllSystems (system:
-        poetry2nix.lib.mkPoetry2Nix { pkgs = nixpkgsFor.${system}; }
+        let
+          pkgs = nixpkgsFor.${system};
+          patchedSrc = pkgs.applyPatches {
+            name = "poetry2nix-patched";
+            src = poetry2nix;
+            patches = [ ./patches/poetry2nix-build-tomli.patch ];
+          };
+        in
+        import patchedSrc { inherit pkgs; }
       );
     in
     {
