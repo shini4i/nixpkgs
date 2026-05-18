@@ -19,7 +19,7 @@ buildGoModule rec {
     hash = "sha256-HA8GOa5aBUL3SwyvY4E1bndLcDaN+mrq0Y9KL0wM1k4=";
   };
 
-  vendorHash = "sha256-txuTishG91WJTyooxb6US6J0lQXXbZwyv6mDtHSwFD8=";
+  vendorHash = "sha256-MZ3mLsqVwPc8BWUmPuCoiW9tcZBrRyeH5jz0488CbUg=";
 
   nativeBuildInputs = [ mockgen ];
   nativeCheckInputs = [ git ];
