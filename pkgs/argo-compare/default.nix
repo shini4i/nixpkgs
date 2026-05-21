@@ -10,13 +10,13 @@
 
 buildGoModule rec {
   pname = "argo-compare";
-  version = "0.7.0";
+  version = "0.7.1";
 
   src = fetchFromGitHub {
     owner = "shini4i";
     repo = "argo-compare";
     rev = "v${version}";
-    hash = "sha256-HA8GOa5aBUL3SwyvY4E1bndLcDaN+mrq0Y9KL0wM1k4=";
+    hash = "sha256-b4LkmVScvWQFqyG+a7NS1MczfhHlsdklkDbzvryaNBk=";
   };
 
   vendorHash = "sha256-MZ3mLsqVwPc8BWUmPuCoiW9tcZBrRyeH5jz0488CbUg=";
