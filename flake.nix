@@ -26,15 +26,22 @@
       nixpkgsFor = forAllSystems (system: import nixpkgs { inherit system; });
 
       # poetry2nix instantiated for each system.
-      # Upstream is dormant; patch removes a `tomli` arg that no longer exists
-      # in nixpkgs' python-modules/build (stdlib `tomllib` since Python 3.11).
+      # Upstream is dormant, so we carry two local patches:
+      #   - build-tomli: removes a `tomli` arg that no longer exists in nixpkgs'
+      #     python-modules/build (stdlib `tomllib` since Python 3.11).
+      #   - nested-buildinputs: lib.optional -> lib.optionals for list-valued
+      #     buildInputs deps, silencing nixpkgs 26.05's nested-list deprecation
+      #     warning emitted once per locked package.
       poetry2nixFor = forAllSystems (system:
         let
           pkgs = nixpkgsFor.${system};
           patchedSrc = pkgs.applyPatches {
             name = "poetry2nix-patched";
             src = poetry2nix;
-            patches = [ ./patches/poetry2nix-build-tomli.patch ];
+            patches = [
+              ./patches/poetry2nix-build-tomli.patch
+              ./patches/poetry2nix-nested-buildinputs.patch
+            ];
           };
         in
         import patchedSrc { inherit pkgs; }

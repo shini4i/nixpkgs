@@ -1,0 +1,31 @@
+Use `lib.optionals` (not `lib.optional`) for list-valued buildInputs deps.
+
+`mk-poetry-dep.nix` built each dependency's `buildInputs` with `lib.optional`,
+which wraps its argument in a singleton list. Both arguments here are already
+lists — `(getManyLinuxDeps …).pkg` and `buildSystemPkgs` — so the result was a
+nested list (`[ [ … ] ]`).
+
+Nixpkgs 26.05 deprecates nested lists in dependency attributes
+(pkgs/stdenv/generic/make-derivation.nix), emitting one
+"uses a nested list in attribute 'buildInputs'" warning per locked package.
+This spams the eval log of every downstream consumer (e.g. kubeseal-auto).
+
+`lib.optionals` concatenates the list instead of wrapping it — the correct
+combinator — which silences the warnings.
+
+Upstream poetry2nix is dormant since April 2025; patch locally until fixed
+(nix-community/poetry2nix).
+
+--- a/mk-poetry-dep.nix
++++ b/mk-poetry-dep.nix
+@@ -140,8 +140,8 @@
+         hooks.pipBuildHook
+       ];
+
+-      buildInputs = lib.optional isLocked (getManyLinuxDeps fileInfo.name).pkg
+-        ++ lib.optional isDirectory buildSystemPkgs;
++      buildInputs = lib.optionals isLocked (getManyLinuxDeps fileInfo.name).pkg
++        ++ lib.optionals isDirectory buildSystemPkgs;
+
+       propagatedBuildInputs =
+         let
