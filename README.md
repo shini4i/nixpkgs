@@ -119,7 +119,7 @@ NixOS modules for service configuration. Import via `nixosModules.<name>`.
 
 3. Add it to `pkgs/default.nix`:
    ```nix
-   { pkgs, p2nix }:
+   { pkgs, ... }:
    {
      my-package = pkgs.callPackage ./my-package { };
    }

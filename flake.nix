@@ -3,13 +3,28 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    poetry2nix = {
-      url = "github:nix-community/poetry2nix";
+
+    # uv2nix toolchain for building kubeseal-auto from its uv.lock.
+    pyproject-nix = {
+      url = "github:pyproject-nix/pyproject.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    uv2nix = {
+      url = "github:pyproject-nix/uv2nix";
+      inputs.pyproject-nix.follows = "pyproject-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    pyproject-build-systems = {
+      url = "github:pyproject-nix/build-system-pkgs";
+      inputs.pyproject-nix.follows = "pyproject-nix";
+      inputs.uv2nix.follows = "uv2nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
-  outputs = { self, nixpkgs, poetry2nix }:
+  outputs = { self, nixpkgs, pyproject-nix, uv2nix, pyproject-build-systems }:
     let
       # Systems to support
       supportedSystems = [
@@ -24,36 +39,15 @@
 
       # Nixpkgs instantiated for each system
       nixpkgsFor = forAllSystems (system: import nixpkgs { inherit system; });
-
-      # poetry2nix instantiated for each system.
-      # Upstream is dormant, so we carry two local patches:
-      #   - build-tomli: removes a `tomli` arg that no longer exists in nixpkgs'
-      #     python-modules/build (stdlib `tomllib` since Python 3.11).
-      #   - nested-buildinputs: lib.optional -> lib.optionals for list-valued
-      #     buildInputs deps, silencing nixpkgs 26.05's nested-list deprecation
-      #     warning emitted once per locked package.
-      poetry2nixFor = forAllSystems (system:
-        let
-          pkgs = nixpkgsFor.${system};
-          patchedSrc = pkgs.applyPatches {
-            name = "poetry2nix-patched";
-            src = poetry2nix;
-            patches = [
-              ./patches/poetry2nix-build-tomli.patch
-              ./patches/poetry2nix-nested-buildinputs.patch
-            ];
-          };
-        in
-        import patchedSrc { inherit pkgs; }
-      );
     in
     {
       # Packages for each system
       packages = forAllSystems (system:
         let
           pkgs = nixpkgsFor.${system};
-          p2nix = poetry2nixFor.${system};
-          customPkgs = import ./pkgs { inherit pkgs p2nix; };
+          customPkgs = import ./pkgs {
+            inherit pkgs uv2nix pyproject-nix pyproject-build-systems;
+          };
         in
         customPkgs
       );
