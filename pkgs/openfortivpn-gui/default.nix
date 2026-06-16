@@ -8,7 +8,6 @@
   lib,
   buildGoModule,
   fetchFromGitHub,
-  fetchurl,
   pkg-config,
   wrapGAppsHook4,
   gobject-introspection,
@@ -17,34 +16,25 @@
   glib,
   libsecret,
   openfortivpn,
-  librsvg,
 }:
 
 buildGoModule rec {
   pname = "openfortivpn-gui";
-  version = "0.3.3";
+  version = "0.3.4";
 
   src = fetchFromGitHub {
     owner = "shini4i";
     repo = "openfortivpn-gui";
-    rev = "v0.3.3";
-    hash = "sha256-JYUy8iLrrEvKxTMFkSRC77N/YTgDJY8cKn2VRrIK2kM=";
+    rev = "v0.3.4";
+    hash = "sha256-+Ou9vnaly6QPN8I1W8rwitYPDgVPXczH0aoBXhoBgSA=";
   };
 
   vendorHash = "sha256-REBq9xL2ybU+cGAvTTkyFiv29y9T56f/i+YN7eDTTMk=";
-
-  # Fortinet VPN icon from official Fortinet icon library.
-  # Note: External URL may change; hash ensures integrity and reproducibility.
-  icon = fetchurl {
-    url = "https://icons.fortinet.com/icons/New%20-%20Updated%20icons%20for%202024/April%202k24/VPN.svg";
-    hash = "sha256-WI8LseHqjLtX95O1eK/NM6m8wjzUmild7ufB8gcLik4=";
-  };
 
   nativeBuildInputs = [
     pkg-config
     wrapGAppsHook4
     gobject-introspection
-    librsvg
   ];
 
   buildInputs = [
@@ -76,16 +66,12 @@ buildGoModule rec {
     install -Dm644 $src/data/com.github.shini4i.openfortivpn-gui.desktop \
       $out/share/applications/com.github.shini4i.openfortivpn-gui.desktop
 
-    # Convert and install the icon to hicolor theme
-    for size in 16 24 32 48 64 128 256 512; do
-      install -d $out/share/icons/hicolor/''${size}x''${size}/apps
-      rsvg-convert -w $size -h $size ${icon} \
-        -o $out/share/icons/hicolor/''${size}x''${size}/apps/openfortivpn-gui.png
+    # Install the application icons shipped upstream (XDG hicolor theme).
+    # The .desktop entry's Icon=openfortivpn-gui resolves against these.
+    for size in 16 24 32 48 64 96 128 256 512; do
+      install -Dm644 $src/assets/icons/hicolor/''${size}x''${size}/apps/openfortivpn-gui.png \
+        $out/share/icons/hicolor/''${size}x''${size}/apps/openfortivpn-gui.png
     done
-
-    # Install SVG icon for scalable
-    install -Dm644 ${icon} \
-      $out/share/icons/hicolor/scalable/apps/openfortivpn-gui.svg
 
     # Install the systemd service file for the helper daemon.
     # Note: NixOS users should use the nixosModules.openfortivpn-gui-helper module
@@ -93,12 +79,6 @@ buildGoModule rec {
     # This file is provided for non-NixOS Linux distributions.
     install -Dm644 $src/data/openfortivpn-gui-helper.service \
       $out/lib/systemd/system/openfortivpn-gui-helper.service
-  '';
-
-  # Update the desktop file to use our icon
-  postFixup = ''
-    substituteInPlace $out/share/applications/com.github.shini4i.openfortivpn-gui.desktop \
-      --replace-fail "Icon=network-vpn" "Icon=openfortivpn-gui"
   '';
 
   # Add openfortivpn to PATH via GApps wrapper (more idiomatic than separate wrapProgram)
