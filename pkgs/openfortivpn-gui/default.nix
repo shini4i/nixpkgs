@@ -20,13 +20,13 @@
 
 buildGoModule rec {
   pname = "openfortivpn-gui";
-  version = "0.4.0";
+  version = "0.4.1";
 
   src = fetchFromGitHub {
     owner = "shini4i";
     repo = "openfortivpn-gui";
-    rev = "v0.4.0";
-    hash = "sha256-P3+T0byMYWrfto/mq48Sj1MSa85pB4tSz1huhJLaREo=";
+    rev = "v0.4.1";
+    hash = "sha256-MududdZ8EJBrK5TA+ex0Gnm0GEbs5d0rxdIyQOik17M=";
   };
 
   vendorHash = "sha256-MFVIe0h0fc2doBRcPtuBWgPNpLl06BwNN9wB5JQOt7k=";
