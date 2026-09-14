@@ -19,7 +19,7 @@ buildGoModule rec {
     hash = "sha256-VeDqbih+KXhi/9PX8kDDt2DXowbT13eEZx3zQwGWB+Q=";
   };
 
-  vendorHash = "sha256-o+leKy5y/Wa/Karm9JDPMUx7kewjTytduEvtW1xUGhw=";
+  vendorHash = "sha256-EgdPPJW6POoeqQUfP2Pg/w8ylb32bgajhTCx9pquEcY=";
 
   nativeBuildInputs = [ mockgen ];
   nativeCheckInputs = [ git ];
@@ -28,6 +28,12 @@ buildGoModule rec {
     # Generate mocks required for tests
     mkdir -p cmd/argo-compare/mocks
     mockgen --source=internal/ports/ports.go --destination=cmd/argo-compare/mocks/interfaces.go --package=mocks
+  '';
+
+  # Some tests resolve the repository root from the working directory; fetchFromGitHub
+  # ships no .git, so they fail before reaching what they actually assert.
+  preCheck = ''
+    git init -q
   '';
 
   ldflags = [
