@@ -3,7 +3,8 @@
   * @description Brave browser repackaged from the official x86_64 .deb on GitHub releases.
   * Adapted from the derivation nixpkgs removed (last present at NixOS/nixpkgs@9bb52223).
   * The pname must stay "brave": consumers' OpenSnitch rules match the "-brave-" store path.
-  * Bump: set version, then hash to the asset's sha256 from the GitHub release, in SRI form.
+  * Bumped by .github/workflows/brave-update.yml, which opens a PR per new stable release.
+  * Manual bump: set version, then hash to the asset's sha256 from the GitHub release, in SRI form.
 */
 {
   lib,
@@ -119,7 +120,7 @@ let
     "AcceleratedVideoEncoder"
   ];
 
-  # OutdatedBuildDetector stays on: nothing bumps this package automatically.
+  # OutdatedBuildDetector stays on: it flags a bump that never got merged.
   # UseChromeOSDirectVideoDecoder: VA-API breaks without it (brave/brave-browser#20935).
   disableFeatures = [ "UseChromeOSDirectVideoDecoder" ];
 in
