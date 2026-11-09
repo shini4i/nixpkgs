@@ -70,12 +70,40 @@ jobs:
           echo "Updating brave $CURRENT -> $LATEST"
           echo "version=$LATEST" >> "$GITHUB_OUTPUT"
 
+      # Hashes come from the release's asset digests; the build re-verifies the x86_64-linux one.
       - name: Update and build
         if: steps.release.outputs.version != ''
         env:
+          GH_TOKEN: ${{ github.token }}
           VERSION: ${{ steps.release.outputs.version }}
         run: |
-          nix run --inputs-from . nixpkgs#nix-update -- --flake brave --version "$VERSION"
+          ASSETS=$(gh release view "v$VERSION" --repo brave/brave-browser --json assets)
+
+          sri() {
+            local digest
+            digest=$(jq -r --arg name "$1" '.assets[] | select(.name == $name) | .digest' <<<"$ASSETS")
+            if [[ "$digest" != sha256:* ]]; then
+              echo "::error::No sha256 digest for release asset $1" >&2
+              exit 1
+            fi
+            nix hash convert --hash-algo sha256 --to sri "${digest#sha256:}"
+          }
+
+          X86_64_LINUX=$(sri "brave-browser_${VERSION}_amd64.deb")
+          AARCH64_LINUX=$(sri "brave-browser_${VERSION}_arm64.deb")
+          AARCH64_DARWIN=$(sri "brave-v${VERSION}-darwin-arm64.zip")
+
+          jq -n \
+            --arg version "$VERSION" \
+            --arg x86_64_linux "$X86_64_LINUX" \
+            --arg aarch64_linux "$AARCH64_LINUX" \
+            --arg aarch64_darwin "$AARCH64_DARWIN" \
+            '{version: $version, hashes: {
+              "x86_64-linux": $x86_64_linux,
+              "aarch64-linux": $aarch64_linux,
+              "aarch64-darwin": $aarch64_darwin
+            }}' > pkgs/brave/sources.json
+
           nix build .#brave
 
       - name: Open or update pull request

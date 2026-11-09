@@ -44,7 +44,7 @@ nix run github:shini4i/nixpkgs#kubeseal-auto
 |---------|-------------|
 | `argo-compare` | Comparison tool for ArgoCD Application manifests between Git branches |
 | `asd-brightness-daemon` | D-Bus daemon for Apple Studio Display brightness control via USB HID |
-| `brave` | Brave browser repackaged from the official `.deb` (x86_64-linux only; no longer in nixpkgs) |
+| `brave` | Brave browser repackaged from the official release assets (x86_64/aarch64 Linux, aarch64 Darwin; no longer in nixpkgs) |
 | `gnome-shell-extension-apple-studio-display` | GNOME Shell extension for Apple Studio Display brightness control |
 | `gnome-shell-extension-elgato-lights` | GNOME Shell extension for controlling Elgato Key Lights |
 | `kd` | A bash script that decodes Kubernetes secrets |
