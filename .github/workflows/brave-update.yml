@@ -45,8 +45,8 @@ jobs:
           CURRENT=$(nix eval --raw .#packages.x86_64-linux.brave.version)
 
           if [[ "$NAME" != "Release v"* ]]; then
-            echo "Latest release '$NAME' is not a stable release, skipping"
-            exit 0
+            echo "::error::Latest release '$NAME' is not named 'Release v*'; stable detection needs updating"
+            exit 1
           fi
           if [[ ! "$LATEST" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "::error::Unexpected tag format: $TAG"
