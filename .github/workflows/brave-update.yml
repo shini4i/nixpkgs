@@ -1,0 +1,103 @@
+# Opens a pull request bumping pkgs/brave to Brave's latest stable release.
+# Brave leaves many Nightly builds unmarked as pre-releases, so stable means "Latest" + "Release v".
+# Needs "Allow GitHub Actions to create and approve pull requests" (Settings > Actions > General).
+name: Brave Update
+
+on:
+  schedule:
+    - cron: '0 6 * * *'  # Daily at 6 AM UTC
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: brave-update
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      BRANCH: chore/brave
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: cachix/install-nix-action@75c75c31ebece974e48ebc36b4ad125bd97bd97b # v31.11.3
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+
+      - name: Find latest stable release
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          RELEASE=$(gh release view --repo brave/brave-browser --json name,tagName)
+          NAME=$(jq -r .name <<<"$RELEASE")
+          TAG=$(jq -r .tagName <<<"$RELEASE")
+          LATEST="${TAG#v}"
+          CURRENT=$(nix eval --raw .#packages.x86_64-linux.brave.version)
+
+          if [[ "$NAME" != "Release v"* ]]; then
+            echo "::error::Latest release '$NAME' is not named 'Release v*'; stable detection needs updating"
+            exit 1
+          fi
+          if [[ ! "$LATEST" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Unexpected tag format: $TAG"
+            exit 1
+          fi
+
+          NEWEST=$(printf '%s\n%s\n' "$CURRENT" "$LATEST" | sort -V | tail -n1)
+          if [[ "$LATEST" == "$CURRENT" || "$NEWEST" != "$LATEST" ]]; then
+            echo "brave $CURRENT is up to date (latest stable: $LATEST)"
+            exit 0
+          fi
+
+          TITLE="chore(brave): bump version to $LATEST"
+          OPEN_TITLE=$(gh pr list --head "$BRANCH" --state open --json title,isCrossRepository \
+            --jq '[.[] | select(.isCrossRepository | not)][0].title // ""')
+          if [[ "$OPEN_TITLE" == "$TITLE" ]]; then
+            echo "Pull request for $LATEST is already open"
+            exit 0
+          fi
+
+          echo "Updating brave $CURRENT -> $LATEST"
+          echo "version=$LATEST" >> "$GITHUB_OUTPUT"
+
+      - name: Update and build
+        if: steps.release.outputs.version != ''
+        env:
+          VERSION: ${{ steps.release.outputs.version }}
+        run: |
+          nix run --inputs-from . nixpkgs#nix-update -- --flake brave --version "$VERSION"
+          nix build .#brave
+
+      - name: Open or update pull request
+        if: steps.release.outputs.version != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.release.outputs.version }}
+        run: |
+          TITLE="chore(brave): bump version to $VERSION"
+          BODY="Updates \`brave\` to [$VERSION](https://github.com/brave/brave-browser/releases/tag/v$VERSION), the latest stable release."
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898299+github-actions[bot]@users.noreply.github.com"
+          gh auth setup-git
+          git switch -c "$BRANCH"
+          git commit -am "$TITLE"
+          git push --force origin "$BRANCH"
+
+          PR=$(gh pr list --head "$BRANCH" --state open --json number,isCrossRepository \
+            --jq '[.[] | select(.isCrossRepository | not)][0].number // ""')
+          if [[ -n "$PR" ]]; then
+            gh pr edit "$PR" --title "$TITLE" --body "$BODY"
+          else
+            gh pr create --head "$BRANCH" --base main --title "$TITLE" --body "$BODY"
+          fi
