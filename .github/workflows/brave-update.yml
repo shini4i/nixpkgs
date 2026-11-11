@@ -124,7 +124,7 @@ jobs:
           BODY="Updates \`brave\` to [$VERSION](https://github.com/brave/brave-browser/releases/tag/v$VERSION), the latest stable release."
 
           git config user.name "github-actions[bot]"
-          git config user.email "41898299+github-actions[bot]@users.noreply.github.com"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           gh auth setup-git
           git switch -c "$BRANCH"
           git commit -am "$TITLE"
