@@ -59,15 +59,6 @@ jobs:
             exit 0
           fi
 
-          TITLE="chore(brave): bump version to $LATEST"
-          OPEN_TITLE=$(gh pr list --head "$BRANCH" --state open --json title,isCrossRepository \
-            --jq '[.[] | select(.isCrossRepository | not)][0].title // ""')
-          if [[ "$OPEN_TITLE" == "$TITLE" ]]; then
-            echo "Pull request for $LATEST is already open; merging it"
-            gh pr merge "$BRANCH" --squash
-            exit 0
-          fi
-
           echo "Updating brave $CURRENT -> $LATEST"
           echo "version=$LATEST" >> "$GITHUB_OUTPUT"
 
