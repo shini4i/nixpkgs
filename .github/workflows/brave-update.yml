@@ -1,4 +1,4 @@
-# Opens a pull request bumping pkgs/brave to Brave's latest stable release.
+# Opens and squash-merges a pull request bumping pkgs/brave to Brave's latest stable release.
 # Brave leaves many Nightly builds unmarked as pre-releases, so stable means "Latest" + "Release v".
 # Needs "Allow GitHub Actions to create and approve pull requests" (Settings > Actions > General).
 name: Brave Update
@@ -59,16 +59,15 @@ jobs:
             exit 0
           fi
 
-          TITLE="chore(brave): bump version to $LATEST"
-          OPEN_TITLE=$(gh pr list --head "$BRANCH" --state open --json title,isCrossRepository \
-            --jq '[.[] | select(.isCrossRepository | not)][0].title // ""')
-          if [[ "$OPEN_TITLE" == "$TITLE" ]]; then
-            echo "Pull request for $LATEST is already open"
-            exit 0
-          fi
-
           echo "Updating brave $CURRENT -> $LATEST"
           echo "version=$LATEST" >> "$GITHUB_OUTPUT"
+
+      # A merge made with GITHUB_TOKEN does not trigger Cache Rebuild, so this job fills Cachix.
+      - uses: cachix/cachix-action@38b082610b782e7e93e209c35fd730d399dee866 # v17
+        if: steps.release.outputs.version != ''
+        with:
+          name: shini4i
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
       # Hashes come from the release's asset digests; the build re-verifies the x86_64-linux one.
       - name: Update and build
@@ -106,7 +105,7 @@ jobs:
 
           nix build .#brave
 
-      - name: Open or update pull request
+      - name: Open and merge pull request
         if: steps.release.outputs.version != ''
         env:
           GH_TOKEN: ${{ github.token }}
@@ -116,7 +115,7 @@ jobs:
           BODY="Updates \`brave\` to [$VERSION](https://github.com/brave/brave-browser/releases/tag/v$VERSION), the latest stable release."
 
           git config user.name "github-actions[bot]"
-          git config user.email "41898299+github-actions[bot]@users.noreply.github.com"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           gh auth setup-git
           git switch -c "$BRANCH"
           git commit -am "$TITLE"
@@ -129,3 +128,5 @@ jobs:
           else
             gh pr create --head "$BRANCH" --base main --title "$TITLE" --body "$BODY"
           fi
+
+          gh pr merge "$BRANCH" --squash
