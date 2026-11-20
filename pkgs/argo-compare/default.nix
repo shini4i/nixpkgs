@@ -36,6 +36,10 @@ buildGoModule rec {
     git init -q
   '';
 
+  # Go 1.27's encoding/json (v2-backed) marshals map[any]any, so this test's
+  # expected error no longer occurs. Remove once argo-compare ships a fixed test.
+  checkFlags = [ "-skip=^TestToYAMLReportsUnmarshalableValues$" ];
+
   ldflags = [
     "-s"
     "-w"
